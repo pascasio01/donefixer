@@ -1,0 +1,15 @@
+# Entorno de desarrollo local (Sprint 0). PostgreSQL 16 con wal_level=logical (requisito del canal sync {{ADR-014}}).
+# Rol de aplicación NO privilegiado (lección Spike: superuser bypassa RLS). Sin lógica de negocio.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: donefixer
+    command: >
+      postgres -c wal_level=logical -c max_wal_senders=4 -c max_replication_slots=4
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 20
