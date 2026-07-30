@@ -1,0 +1,163 @@
+# DONEFIXER — Pipeline CI definitivo (Sprint 0). Materializa fase1_plan/06 (DC-13) y POL-EGM-04/05/09/16 (DC-14).
+# Umbrales de calidad: Doc 47 (no definidos aquí). Gates permanentes indesactivables: suite J-2, test ataque RLS,
+# linter migraciones RLS/FORCE, escaneo de secretos, verificación de integridad documental.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Etapa 1 — Commit/higiene (POL-EGM-04)
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Conventional Commits (WP-<id> en scope)
+        run: tools/ci/commitlint.sh
+
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Escaneo de secretos (bloqueante, POL-EGM-08)
+        run: tools/ci/secrets_scan.sh
+
+  # Etapa 2 — Build + análisis estático (QG-1)
+  build-backend:
+    needs: [commitlint, secrets-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - run: dotnet restore backend/DoneFixer.sln
+      - run: dotnet build backend/DoneFixer.sln -c Release -warnaserror
+      - run: dotnet format backend/DoneFixer.sln --verify-no-changes
+
+  build-web:
+    needs: [commitlint, secrets-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci --prefix web
+      - run: npm run lint --prefix web
+      - run: npm run build --prefix web
+
+  # Etapa 3 — Unit + cobertura (QG-2: umbrales Doc 47, en tools/ci/coverage_check.sh)
+  unit-backend:
+    needs: [build-backend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - run: dotnet test backend/tests/DomainTests -c Release --collect:"XPlat Code Coverage"
+      - run: dotnet test backend/tests/ApplicationTests -c Release --collect:"XPlat Code Coverage"
+      - run: tools/ci/coverage_check.sh backend   # dominio 90+ / aplicación 80+ / infra 70+ (Doc 47)
+
+  # Etapa 4 — Integridad documental (POL-EGM-14; bloqueante en PRs que tocan docs)
+  docs-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificación de integridad del corpus (IDs, referencias, familias prohibidas, enlaces)
+        run: python3 tools/ci/docs_integrity.py
+
+  # Etapa 5 — Contract tests (API Doc 24, eventos Doc 25)
+  contract:
+    needs: [build-backend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - run: dotnet test backend/tests/ContractTests -c Release
+
+  # Etapa 6 — Integration: PostgreSQL real + migraciones + TEST DE ATAQUE RLS (indesactivable)
+  integration:
+    needs: [build-backend]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: { POSTGRES_PASSWORD: ci, POSTGRES_DB: donefixer_ci }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
+          -c wal_level=logical
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - name: Linter de migraciones (toda tabla tenant con policy + FORCE RLS — POL-EGM-07)
+        run: tools/lint-migrations/check_rls.sh backend/src/DoneFixer.Infrastructure/Migrations
+      - name: Migraciones up + down
+        run: tools/ci/migrate_updown.sh
+      - name: Integration tests (rol de app NO privilegiado)
+        run: dotnet test backend/tests/IntegrationTests -c Release
+      - name: TEST DE ATAQUE RLS (0 filas cross-tenant — gate permanente)
+        run: tools/ci/rls_attack_test.sh
+
+  # Etapa 7 — Security: SAST + dependencias + SBOM (POL-EGM-08)
+  security:
+    needs: [build-backend, build-web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Análisis de dependencias + SBOM diff
+        run: tools/ci/sbom_diff.sh
+      - name: SAST
+        run: tools/ci/sast.sh
+
+  # Etapa 8 — E2E en staging efímero: SUITE J-2 PORTADA (gate permanente, indesactivable)
+  e2e:
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+    needs: [unit-backend, contract, integration, security]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Provisionar staging efímero
+        run: tools/ci/staging_up.sh
+      - name: Suite J-2 (modo avión, conflictos, veredictos — portada de la Spike)
+        run: tools/ci/j2_suite.sh
+      - name: Journeys críticos web
+        run: tools/ci/e2e_web.sh
+
+  # Etapas 9-10 — Performance + Accessibility (release; budgets MA-8/RNF-PERF-*, WCAG Doc 40)
+  performance-accessibility:
+    if: startsWith(github.ref, 'refs/heads/release/')
+    needs: [e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: tools/ci/perf_budgets.sh     # sync 200 ops vs RNF-SYNC-003; web vs RNF-PERF-003
+      - run: tools/ci/a11y_audit.sh       # WCAG 2.2 AA journeys críticos (Doc 40)
+
+  # Etapa 11 — Deploy (staging automático en develop; producción manual con aprobación)
+  deploy-staging:
+    if: github.ref == 'refs/heads/develop'
+    needs: [e2e]
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - run: tools/ci/deploy.sh staging
+
+  deploy-production:
+    if: startsWith(github.ref, 'refs/heads/release/')
+    needs: [performance-accessibility]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      # requiere aprobación manual: responsable de área + SRE (checklist maestro de Release, EGM 06)
+    steps:
+      - run: tools/ci/deploy.sh production
+      - run: tools/ci/smoke_test.sh        # test de humo post-deploy (bloqueante)
