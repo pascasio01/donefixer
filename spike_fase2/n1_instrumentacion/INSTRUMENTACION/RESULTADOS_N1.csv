@@ -1,0 +1,15 @@
+metrica,flutter,rn,unidad,clasificacion,evidencia
+arranque_frio_promedio_3x,,,ms,DC,logcat Displayed + logger cold_start_start→first_interactive
+apertura_ot_local,,,ms,DC,wo_open
+jank_scroll_checklist,,,frames/s,DC,DevTools / Perf Monitor
+memoria_rss_reposo,,,MB,DC,adb dumpsys meminfo
+memoria_rss_tras_j2,,,MB,DC,adb dumpsys meminfo
+cpu_durante_sync_200ops,,,%,DC,adb shell top muestreado
+convergencia_sync_200ops_p95,,,s,DC,sync_first_op_sent→sync_last_verdict (target <60 s, RNF-SYNC-002)
+bateria_2h_uso_mixto,,,%/h,DC,Battery Historian (sin wakelocks, RNF-MOB-003)
+tamano_apk_release,,,MB,DC,ls -la
+loc_sin_tests,,,lineas,DC,cloc
+dependencias_nativas_directas,,,count,DC,pubspec / package.json
+horas_implementacion_j2,,,h,DC,registro del implementador
+veredictos_visibles_j2,,,count,DC,bandeja "Requiere tu atención" (8 rechazos esperados sobre OT cancelada)
+razones_lenguaje_claro,,,si/no,DC,captura de pantalla anexa
