@@ -1,0 +1,33 @@
+# SPIKE FASE 2 — PowerSync Self-Hosted (Entorno B). Configuración de evaluación, no producción.
+# Réplica del schema J-2 ya validado en Fase 1. Ajustar credenciales en Carril B.
+replication:
+  connections:
+    - type: postgresql
+      uri: postgresql://postgres:spike@postgres:5432/spike
+      sslmode: disable
+
+storage:
+  type: postgresql
+  uri: postgresql://postgres:spike@postgres:5432/spike
+
+sync_rules:
+  content: |
+    bucket_definitions:
+      tenant_data:
+        parameters: SELECT request.parameters() ->> 'tenant_id' AS tenant_id
+        data:
+          - SELECT * FROM work_orders  WHERE tenant_id = bucket.tenant_id
+          - SELECT * FROM wo_items     WHERE tenant_id = bucket.tenant_id
+          - SELECT * FROM evidences    WHERE tenant_id = bucket.tenant_id
+          - SELECT * FROM stock_movements WHERE tenant_id = bucket.tenant_id
+
+api:
+  tokens:
+    # Carril B: generar par de claves y registrar huella (no la clave) en el Anexo.
+    keys:
+      - private: <PEM_PRIVADA>
+        public: <PEM_PUBLICA>
+
+port: 8080
+telemetry:
+  disable_telemetry_sharing: true
