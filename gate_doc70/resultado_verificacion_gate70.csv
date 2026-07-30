@@ -1,0 +1,9 @@
+verificacion,estado,detalle
+V-1 documentos canónicos,PASS,9/9 presentes
+V-2 IDs citados definidos,PASS,0 citas sin definición — corpus íntegro (tabla AO-1 de la Auditoría excluida por ser registro de la errata)
+V-3 familias prohibidas,PASS,0 ocurrencias fuera del registro histórico AO-1 — únicas ocurrencias están en la tabla AO-1 de la Auditoría (legítimas)
+V-4 PD bloqueantes (G0),INFO,"abiertas: ['N-1', 'N-2', 'PD-CLOUD', 'PD-IA-1', 'PD-4'] → regla de ejecución NO cumplida; auditoría final no puede iniciarse (NO GO automático si se ejecutara hoy)"
+V-5 prohibiciones IA canónicas,PASS,P-33-1…7 presentes en Doc 33 (11 menciones); Doc 19 deriva (AO-2)
+V-6 evidencia spike Fase 1,PASS,"resultados.csv presente (15 métricas, 0 FAIL)"
+V-7 anexos de reproducibilidad,INFO,"2 plantillas/anexos: ['spike_fase2/plantillas/PLANTILLA_Anexo_Reproducibilidad.md', 'spike_fase2/n1_instrumentacion/ANEXO_Reproducibilidad_N1.md']"
+V-8 enlaces internos,PASS,0 enlaces sin destino
