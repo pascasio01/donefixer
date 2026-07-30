@@ -1,0 +1,31 @@
+caso_id,entorno,metrica,valor,unidad,clasificacion,evidencia_ref
+F2-IT-01,CONTROL,sync_13_ops_ms,12.27,ms,DC,write-path Fase 1 portado
+F2-IT-01,CONTROL,ops_aceptadas,13,ops,DC,
+F2-IT-01,CONTROL,idempotencia_reenvio_ms,1.36,ms,DC,
+F2-IT-01,CONTROL,duplicados_detectados,13,ops,DC,
+F2-CT-01,CONTROL,veredicto,reject,,DC,
+F2-CT-01,CONTROL,motivo,server-state-Completada-authoritative,,DC,
+F2-IT-01,CONTROL,rls_filas_cruzadas,0,filas,DC,
+F2-CT-04,CONTROL,veredicto_delete,accept,,DC,
+F2-CT-04,CONTROL,veredicto_edicion_tardia,reject,,DC,
+F2-LT-01,CONTROL,usuarios,10,u,DC,
+F2-LT-01,CONTROL,ops_totales,200,ops,DC,
+F2-LT-01,CONTROL,duracion_ms,98.66,ms,DC,
+F2-LT-01,CONTROL,throughput,2027.1,ops/s,DC,
+F2-IT-01,CONTROL,canal_health_ok,True,,SU,"control: línea base write-path, no mide PowerSync"
+F2-IT-01,CONTROL,canal_descarga_ms,4.54,ms,SU,
+F2-IT-01,CONTROL,sync_13_ops_ms,12.6,ms,DC,write-path Fase 1 portado
+F2-IT-01,CONTROL,ops_aceptadas,13,ops,DC,
+F2-IT-01,CONTROL,idempotencia_reenvio_ms,1.35,ms,DC,
+F2-IT-01,CONTROL,duplicados_detectados,13,ops,DC,
+F2-CT-01,CONTROL,veredicto,reject,,DC,
+F2-CT-01,CONTROL,motivo,server-state-Completada-authoritative,,DC,
+F2-IT-01,CONTROL,rls_filas_cruzadas,0,filas,DC,
+F2-CT-04,CONTROL,veredicto_delete,accept,,DC,
+F2-CT-04,CONTROL,veredicto_edicion_tardia,reject,,DC,
+F2-LT-01,CONTROL,usuarios,10,u,DC,
+F2-LT-01,CONTROL,ops_totales,200,ops,DC,
+F2-LT-01,CONTROL,duracion_ms,95.62,ms,DC,
+F2-LT-01,CONTROL,throughput,2091.5,ops/s,DC,
+F2-IT-01,CONTROL,canal_health_ok,True,,SU,"control: línea base write-path, no mide PowerSync"
+F2-IT-01,CONTROL,canal_descarga_ms,5.77,ms,SU,
