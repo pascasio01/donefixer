@@ -1,0 +1,16 @@
+test,metric,value,unit,target
+J2,captura_offline_ops,13,ops,13
+J2,latencia_captura_local,0.17,ms,RNF-PERF-002 (<100ms/lectura)
+J2,latencia_sync_13_ops,9.84,ms,RNF-SYNC-002 (<60s p95)
+J2,veredictos_accept,5,ops,
+J2,veredictos_adjust,0,ops,
+J2,veredictos_reject,8,ops,transición a EnProgreso/Completada esperadas como reject/adjust por cancelación del servidor
+IDEMPOTENCIA,reenvio_lote_completo_sin_duplicar,PASS,,100% duplicate-replayed
+STOCK,movimientos_tras_doble_sync,2,mov,2 (delta idempotente)
+RLS,cruce_tenant_b_ve_ot_de_a,0,filas,0
+RLS,ataque_cross_tenant_bloqueado,PASS,,RNF-SEC-006
+TOMBSTONE,borrados_ganan,PASS,,
+RECOVERY,interrupcion_mitad_lote_reintento,PASS,,
+PERF,sync_200_ops_tiempo_total,84.53,ms,<60000 (RNF-SYNC-002)
+PERF,throughput,2366.1,ops/s,
+OUTBOX,eventos_vs_operaciones,222/221,,1:1 (atomicidad EV-1)
